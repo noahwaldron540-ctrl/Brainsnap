@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>BrainSnap – Daily Trivia</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700;900&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #13131a;
+    --card: #1c1c28;
+    --accent: #f0e040;
+    --accent2: #ff5f57;
+    --accent3: #5af0b0;
+    --text: #f0eefc;
+    --muted: #6b6880;
+    --border: #2a2a3a;
+    --ad-bg: #111118;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+  }
+
+  .phone {
+    width: 100%;
+    max-width: 420px;
+    min-height: 100vh;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* ── STATUS BAR ── */
+  .status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px 6px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+
+  /* ── TOP AD BANNER ── */
+  .ad-banner {
+    background: var(--ad-bg);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 60px;
+  }
+  .ad-badge {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    text-transform: uppercase;
+    border: 1px solid var(--border);
+    padding: 2px 5px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+  .ad-content {
+    flex: 1;
+  }
+  .ad-content .ad-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1.3;
+  }
+  .ad-content .ad-sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .ad-cta {
+    background: var(--accent);
+    color: #000;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: none;
+    cursor: pointer;
+    flex-shrink: 0;
+    letter-spacing: 0.04em;
+    transition: transform 0.1s;
+  }
+  .ad-cta:active { transform: scale(0.95); }
+
+  /* ── MAIN CONTENT ── */
+  .content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 0 80px;
+  }
+
+  /* ── HEADER ── */
+  .app-header {
+    padding: 20px 20px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .logo {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 20px;
+    font-weight: 900;
+    color: var(--accent);
+    letter-spacing: -0.02em;
+  }
+  .logo span { color: var(--text); }
+  .streak {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .streak-fire { font-size: 16px; }
+
+  /* ── CATEGORY PILLS ── */
+  .categories {
+    display: flex;
+    gap: 8px;
+    padding: 0 20px 16px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .categories::-webkit-scrollbar { display: none; }
+  .cat-pill {
+    flex-shrink: 0;
+    padding: 7px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .cat-pill.active {
+    background: var(--accent);
+    color: #000;
+    border-color: var(--accent);
+    font-weight: 700;
+  }
+
+  /* ── QUESTION CARD ── */
+  .question-section { padding: 0 16px; }
+
+  .q-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .q-card::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 120px; height: 120px;
+    background: var(--accent);
+    opacity: 0.06;
+    border-radius: 50%;
+  }
+
+  .q-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  .q-num {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .q-diff {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 10px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .diff-easy { background: rgba(90,240,176,0.15); color: var(--accent3); }
+  .diff-medium { background: rgba(240,224,64,0.15); color: var(--accent); }
+  .diff-hard { background: rgba(255,95,87,0.15); color: var(--accent2); }
+
+  .q-text {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.45;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+  .q-category {
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  /* Timer bar */
+  .timer-track {
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+  .timer-bar {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 1s linear, background 0.3s;
+  }
+
+  /* Answers */
+  .answers { display: flex; flex-direction: column; gap: 10px; }
+  .answer-btn {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 18px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.15s;
+    position: relative;
+    overflow: hidden;
+  }
+  .answer-btn:active { transform: scale(0.98); }
+  .answer-btn:hover:not(:disabled) {
+    border-color: var(--accent);
+    background: rgba(240,224,64,0.05);
+  }
+  .answer-letter {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--muted);
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+  .answer-btn.correct {
+    border-color: var(--accent3);
+    background: rgba(90,240,176,0.1);
+  }
+  .answer-btn.correct .answer-letter {
+    background: var(--accent3);
+    color: #000;
+    border-color: var(--accent3);
+  }
+  .answer-btn.wrong {
+    border-color: var(--accent2);
+    background: rgba(255,95,87,0.1);
+  }
+  .answer-btn.wrong .answer-letter {
+    background: var(--accent2);
+    color: #fff;
+    border-color: var(--accent2);
+  }
+  .answer-btn:disabled { cursor: default; }
+
+  /* Result message */
+  .result-msg {
+    margin-top: 14px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 500;
+    display: none;
+    animation: slideUp 0.25s ease;
+  }
+  .result-msg.show { display: block; }
+  .result-msg.win { background: rgba(90,240,176,0.12); color: var(--accent3); border: 1px solid rgba(90,240,176,0.25); }
+  .result-msg.lose { background: rgba(255,95,87,0.12); color: var(--accent2); border: 1px solid rgba(255,95,87,0.25); }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .next-btn {
+    width: 100%;
+    margin-top: 14px;
+    padding: 14px;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: 14px;
+    font-family: 'Unbounded', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    display: none;
+    transition: transform 0.1s, opacity 0.1s;
+    letter-spacing: 0.02em;
+  }
+  .next-btn.show { display: block; }
+  .next-btn:active { transform: scale(0.98); opacity: 0.9; }
+
+  /* ── MID-CONTENT AD ── */
+  .ad-mid {
+    margin: 20px 16px;
+    background: var(--ad-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px;
+    display: flex;
+    gap: 14px;
+    align-items: center;
+  }
+  .ad-mid-img {
+    width: 56px; height: 56px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #2a2a3a, #3a3a50);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px;
+    flex-shrink: 0;
+  }
+  .ad-mid-text { flex: 1; }
+  .ad-mid-text .ad-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+  .ad-mid-text .ad-sub { font-size: 12px; color: var(--muted); line-height: 1.4; }
+  .ad-mid-badge { font-size: 9px; font-weight: 700; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; margin-bottom: 6px; }
+
+  /* ── LEADERBOARD ── */
+  .section-title {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    padding: 0 20px 12px;
+    letter-spacing: -0.01em;
+  }
+  .leaderboard { padding: 0 16px; display: flex; flex-direction: column; gap: 8px; }
+  .lb-row {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .lb-rank {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 13px;
+    font-weight: 900;
+    width: 24px;
+    text-align: center;
+    color: var(--muted);
+  }
+  .lb-rank.gold { color: var(--accent); }
+  .lb-rank.silver { color: #aaa; }
+  .lb-rank.bronze { color: #cd7f32; }
+  .lb-avatar {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    background: var(--surface);
+  }
+  .lb-name { flex: 1; font-size: 14px; font-weight: 500; }
+  .lb-score { font-family: 'Unbounded', sans-serif; font-size: 13px; font-weight: 700; color: var(--accent); }
+
+  /* ── BOTTOM NAV ── */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    max-width: 420px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    display: flex;
+    padding: 10px 0 20px;
+  }
+  .nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    padding: 4px 0;
+  }
+  .nav-icon { font-size: 22px; }
+  .nav-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .nav-item.active .nav-label { color: var(--accent); }
+
+  /* ── INTERSTITIAL AD OVERLAY ── */
+  .interstitial {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.92);
+    z-index: 100;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    max-width: 420px;
+    margin: 0 auto;
+  }
+  .interstitial.show { display: flex; }
+  .inter-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 28px;
+    width: 100%;
+    text-align: center;
+  }
+  .inter-ad-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  .inter-graphic {
+    font-size: 64px;
+    margin-bottom: 16px;
+    display: block;
+    animation: bounce 1s ease infinite alternate;
+  }
+  @keyframes bounce {
+    from { transform: translateY(0); }
+    to { transform: translateY(-8px); }
+  }
+  .inter-title {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 20px;
+    font-weight: 900;
+    color: var(--text);
+    margin-bottom: 8px;
+    line-height: 1.2;
+  }
+  .inter-sub { font-size: 14px; color: var(--muted); margin-bottom: 24px; line-height: 1.5; }
+  .inter-cta {
+    width: 100%;
+    padding: 16px;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: 14px;
+    font-family: 'Unbounded', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-bottom: 12px;
+    letter-spacing: 0.02em;
+  }
+  .inter-skip {
+    font-size: 13px;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 8px;
+  }
+  .inter-skip span {
+    display: inline-block;
+    min-width: 20px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  /* ── SCORE COUNTER ── */
+  .score-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px 16px;
+  }
+  .score-item { text-align: center; }
+  .score-val {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 20px;
+    font-weight: 900;
+    color: var(--accent);
+  }
+  .score-label { font-size: 11px; color: var(--muted); margin-top: 2px; letter-spacing: 0.06em; text-transform: uppercase; }
+  .score-divider { width: 1px; height: 36px; background: var(--border); }
+</style>
+</head>
+<body>
+<div class="phone">
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <span id="clock">9:41</span>
+    <span>📶 🔋</span>
+  </div>
+
+  <!-- Top Banner Ad -->
+  <div class="ad-banner">
+    <span class="ad-badge">Ad</span>
+    <div class="ad-content">
+      <div class="ad-title" id="banner-ad-title">Learn a new language in 15 min/day</div>
+      <div class="ad-sub" id="banner-ad-sub">Duolingo · Free to download</div>
+    </div>
+    <button class="ad-cta">Install</button>
+  </div>
+
+  <!-- Scrollable Content -->
+  <div class="content">
+    <!-- Header -->
+    <div class="app-header">
+      <div class="logo">Brain<span>Snap</span></div>
+      <div class="streak">
+        <span class="streak-fire">🔥</span>
+        <span id="streak-count">3</span> day streak
+      </div>
+    </div>
+
+    <!-- Score Bar -->
+    <div class="score-bar">
+      <div class="score-item">
+        <div class="score-val" id="score-display">0</div>
+        <div class="score-label">Score</div>
+      </div>
+      <div class="score-divider"></div>
+      <div class="score-item">
+        <div class="score-val" id="correct-display">0</div>
+        <div class="score-label">Correct</div>
+      </div>
+      <div class="score-divider"></div>
+      <div class="score-item">
+        <div class="score-val" id="total-display">0</div>
+        <div class="score-label">Played</div>
+      </div>
+    </div>
+
+    <!-- Category Pills -->
+    <div class="categories" id="categories">
+      <div class="cat-pill active" data-cat="all">All</div>
+      <div class="cat-pill" data-cat="science">🔬 Science</div>
+      <div class="cat-pill" data-cat="history">📜 History</div>
+      <div class="cat-pill" data-cat="geography">🌍 Geography</div>
+      <div class="cat-pill" data-cat="sports">⚽ Sports</div>
+      <div class="cat-pill" data-cat="tech">💻 Tech</div>
+    </div>
+
+    <!-- Question Card -->
+    <div class="question-section">
+      <div class="q-card">
+        <div class="q-meta">
+          <span class="q-num" id="q-num">Question 1</span>
+          <span class="q-diff diff-medium" id="q-diff">Medium</span>
+        </div>
+        <div class="q-text" id="q-text">Loading question...</div>
+        <div class="q-category" id="q-cat">General Knowledge</div>
+        <div class="timer-track">
+          <div class="timer-bar" id="timer-bar" style="width:100%"></div>
+        </div>
+        <div class="answers" id="answers"></div>
+        <div class="result-msg" id="result-msg"></div>
+        <button class="next-btn" id="next-btn">NEXT QUESTION →</button>
+      </div>
+    </div>
+
+    <!-- Mid-Content Ad -->
+    <div class="ad-mid">
+      <div class="ad-mid-img" id="mid-ad-icon">🛒</div>
+      <div class="ad-mid-text">
+        <div class="ad-mid-badge">Sponsored</div>
+        <div class="ad-title" id="mid-ad-title">Shop smarter with price alerts</div>
+        <div class="ad-sub" id="mid-ad-sub">Never miss a deal. Track any product.</div>
+      </div>
+    </div>
+
+    <!-- Leaderboard -->
+    <div class="section-title">🏆 Today's Leaders</div>
+    <div class="leaderboard">
+      <div class="lb-row">
+        <div class="lb-rank gold">1</div>
+        <div class="lb-avatar">🦊</div>
+        <div class="lb-name">QuizMaster_K</div>
+        <div class="lb-score">2,840</div>
+      </div>
+      <div class="lb-row">
+        <div class="lb-rank silver">2</div>
+        <div class="lb-avatar">🐬</div>
+        <div class="lb-name">Brainiac_99</div>
+        <div class="lb-score">2,610</div>
+      </div>
+      <div class="lb-row">
+        <div class="lb-rank bronze">3</div>
+        <div class="lb-avatar">🦁</div>
+        <div class="lb-name">TriviaChamp</div>
+        <div class="lb-score">2,480</div>
+      </div>
+      <div class="lb-row">
+        <div class="lb-rank">4</div>
+        <div class="lb-avatar">🐧</div>
+        <div class="lb-name">You</div>
+        <div class="lb-score" id="my-score">0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Nav -->
+  <div class="bottom-nav">
+    <div class="nav-item active">
+      <span class="nav-icon">🧠</span>
+      <span class="nav-label">Play</span>
+    </div>
+    <div class="nav-item">
+      <span class="nav-icon">🏆</span>
+      <span class="nav-label">Ranks</span>
+    </div>
+    <div class="nav-item">
+      <span class="nav-icon">📊</span>
+      <span class="nav-label">Stats</span>
+    </div>
+    <div class="nav-item">
+      <span class="nav-icon">👤</span>
+      <span class="nav-label">Profile</span>
+    </div>
+  </div>
+</div>
+
+<!-- Interstitial Ad Overlay -->
+<div class="interstitial" id="interstitial">
+  <div class="inter-card">
+    <div class="inter-ad-label">Advertisement</div>
+    <span class="inter-graphic" id="inter-icon">📱</span>
+    <div class="inter-title" id="inter-title">Try Premium for Free</div>
+    <div class="inter-sub" id="inter-sub">Unlock unlimited questions, remove ads, and compete globally.</div>
+    <button class="inter-cta" id="inter-cta-btn">Get Started →</button>
+    <div class="inter-skip" id="inter-skip">Skip in <span id="skip-count">5</span></div>
+  </div>
+</div>
+
+<script>
+const questions = [
+  { text: "What planet is known as the Red Planet?", answers: ["Venus","Mars","Jupiter","Saturn"], correct: 1, cat: "science", diff: "Easy" },
+  { text: "In what year did World War II end?", answers: ["1943","1944","1945","1946"], correct: 2, cat: "history", diff: "Easy" },
+  { text: "What is the capital of Australia?", answers: ["Sydney","Melbourne","Brisbane","Canberra"], correct: 3, cat: "geography", diff: "Medium" },
+  { text: "Who invented the World Wide Web?", answers: ["Bill Gates","Tim Berners-Lee","Steve Jobs","Linus Torvalds"], correct: 1, cat: "tech", diff: "Medium" },
+  { text: "How many bones are in the adult human body?", answers: ["196","206","216","226"], correct: 1, cat: "science", diff: "Medium" },
+  { text: "Which country has won the most FIFA World Cups?", answers: ["Germany","Argentina","Italy","Brazil"], correct: 3, cat: "sports", diff: "Easy" },
+  { text: "What element has the chemical symbol 'Au'?", answers: ["Silver","Copper","Gold","Aluminum"], correct: 2, cat: "science", diff: "Medium" },
+  { text: "The Great Wall of China was primarily built during which dynasty?", answers: ["Han","Tang","Ming","Qing"], correct: 2, cat: "history", diff: "Hard" },
+  { text: "What is the smallest country in the world by area?", answers: ["Monaco","San Marino","Vatican City","Liechtenstein"], correct: 2, cat: "geography", diff: "Medium" },
+  { text: "Which programming language was created by Guido van Rossum?", answers: ["Ruby","Java","Python","Perl"], correct: 2, cat: "tech", diff: "Easy" },
+  { text: "How many Grand Slam titles did Roger Federer win?", answers: ["18","19","20","21"], correct: 2, cat: "sports", diff: "Medium" },
+  { text: "What gas do plants absorb from the atmosphere during photosynthesis?", answers: ["Oxygen","Nitrogen","Carbon Dioxide","Hydrogen"], correct: 2, cat: "science", diff: "Easy" },
+  { text: "In which year did the Berlin Wall fall?", answers: ["1987","1988","1989","1990"], correct: 2, cat: "history", diff: "Medium" },
+  { text: "What is the longest river in Africa?", answers: ["Congo","Niger","Zambezi","Nile"], correct: 3, cat: "geography", diff: "Easy" },
+  { text: "What does 'CPU' stand for?", answers: ["Central Processing Unit","Computer Power Unit","Core Processing Unit","Central Program Utility"], correct: 0, cat: "tech", diff: "Easy" },
+];
+
+const ads = {
+  banner: [
+    { title: "Learn a new language in 15 min/day", sub: "Duolingo · Free to download" },
+    { title: "Invest spare change automatically", sub: "Acorns · Start with €5" },
+    { title: "Stream unlimited music ad-free", sub: "Spotify Premium · 1 month free" },
+    { title: "Get fit with personalized plans", sub: "Nike Training Club · Free" },
+  ],
+  mid: [
+    { icon: "🛒", title: "Shop smarter with price alerts", sub: "Never miss a deal. Track any product." },
+    { icon: "📚", title: "Read 1 book per week", sub: "Blinkist summarizes top books in 15 min." },
+    { icon: "🍕", title: "Free delivery on your first order", sub: "Deliveroo · Use code SNAP10" },
+    { icon: "💰", title: "Earn cash back on everything", sub: "Revolut · 0% fees abroad too." },
+  ],
+  interstitial: [
+    { icon: "⭐", title: "Upgrade to BrainSnap Pro", sub: "No ads, unlimited lives, global leaderboards." },
+    { icon: "🎮", title: "Play BrainSnap with Friends", sub: "Challenge up to 4 friends in real-time trivia battles." },
+    { icon: "📱", title: "Download BrainSnap App", sub: "Play offline, get daily push notifications & bonus XP." },
+  ]
+};
+
+let score = 0, correct = 0, total = 0, qIndex = 0, answered = false;
+let timerInterval, timerSeconds = 15;
+let questionsAnswered = 0;
+
+const letters = ['A','B','C','D'];
+
+function shuffle(arr) {
+  return [...arr].sort(() => Math.random() - 0.5);
+}
+
+function rotateAds() {
+  const b = ads.banner[Math.floor(Math.random() * ads.banner.length)];
+  document.getElementById('banner-ad-title').textContent = b.title;
+  document.getElementById('banner-ad-sub').textContent = b.sub;
+
+  const m = ads.mid[Math.floor(Math.random() * ads.mid.length)];
+  document.getElementById('mid-ad-icon').textContent = m.icon;
+  document.getElementById('mid-ad-title').textContent = m.title;
+  document.getElementById('mid-ad-sub').textContent = m.sub;
+}
+
+function loadQuestion() {
+  answered = false;
+  const q = questions[qIndex % questions.length];
+
+  document.getElementById('q-num').textContent = `Question ${total + 1}`;
+  document.getElementById('q-text').textContent = q.text;
+  document.getElementById('q-cat').textContent = q.cat.charAt(0).toUpperCase() + q.cat.slice(1);
+
+  const diff = document.getElementById('q-diff');
+  diff.textContent = q.diff;
+  diff.className = 'q-diff diff-' + q.diff.toLowerCase();
+
+  const answersEl = document.getElementById('answers');
+  answersEl.innerHTML = '';
+  q.answers.forEach((ans, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'answer-btn';
+    btn.innerHTML = `<span class="answer-letter">${letters[i]}</span>${ans}`;
+    btn.onclick = () => selectAnswer(i, q.correct, btn);
+    answersEl.appendChild(btn);
+  });
+
+  document.getElementById('result-msg').className = 'result-msg';
+  document.getElementById('next-btn').className = 'next-btn';
+
+  startTimer();
+}
+
+function startTimer() {
+  clearInterval(timerInterval);
+  timerSeconds = 15;
+  const bar = document.getElementById('timer-bar');
+  bar.style.width = '100%';
+  bar.style.background = 'var(--accent)';
+
+  timerInterval = setInterval(() => {
+    timerSeconds--;
+    const pct = (timerSeconds / 15) * 100;
+    bar.style.width = pct + '%';
+    if (timerSeconds <= 5) bar.style.background = 'var(--accent2)';
+    if (timerSeconds <= 0) {
+      clearInterval(timerInterval);
+      if (!answered) timeOut();
+    }
+  }, 1000);
+}
+
+function timeOut() {
+  answered = true;
+  const q = questions[qIndex % questions.length];
+  const btns = document.querySelectorAll('.answer-btn');
+  btns.forEach(b => b.disabled = true);
+  btns[q.correct].classList.add('correct');
+  const msg = document.getElementById('result-msg');
+  msg.textContent = `⏱ Time's up! The answer was: ${q.answers[q.correct]}`;
+  msg.className = 'result-msg lose show';
+  document.getElementById('next-btn').className = 'next-btn show';
+  total++;
+  document.getElementById('total-display').textContent = total;
+}
+
+function selectAnswer(idx, correctIdx, btn) {
+  if (answered) return;
+  answered = true;
+  clearInterval(timerInterval);
+
+  const btns = document.querySelectorAll('.answer-btn');
+  btns.forEach(b => b.disabled = true);
+
+  const msg = document.getElementById('result-msg');
+
+  if (idx === correctIdx) {
+    btn.classList.add('correct');
+    const pts = timerSeconds * 10 + 50;
+    score += pts;
+    correct++;
+    msg.textContent = `✅ Correct! +${pts} points`;
+    msg.className = 'result-msg win show';
+    document.getElementById('score-display').textContent = score;
+    document.getElementById('correct-display').textContent = correct;
+    document.getElementById('my-score').textContent = score;
+  } else {
+    btn.classList.add('wrong');
+    btns[correctIdx].classList.add('correct');
+    msg.textContent = `❌ Wrong! The answer was: ${questions[qIndex % questions.length].answers[correctIdx]}`;
+    msg.className = 'result-msg lose show';
+  }
+
+  total++;
+  questionsAnswered++;
+  document.getElementById('total-display').textContent = total;
+  document.getElementById('next-btn').className = 'next-btn show';
+
+  // Show interstitial every 5 questions
+  if (questionsAnswered % 5 === 0) {
+    setTimeout(showInterstitial, 500);
+  }
+}
+
+function nextQuestion() {
+  qIndex++;
+  rotateAds();
+  loadQuestion();
+  // Scroll back to question
+  document.querySelector('.question-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// Interstitial
+let skipTimer;
+function showInterstitial() {
+  const inter = ads.interstitial[Math.floor(Math.random() * ads.interstitial.length)];
+  document.getElementById('inter-icon').textContent = inter.icon;
+  document.getElementById('inter-title').textContent = inter.title;
+  document.getElementById('inter-sub').textContent = inter.sub;
+
+  document.getElementById('interstitial').classList.add('show');
+  let count = 5;
+  document.getElementById('skip-count').textContent = count;
+  document.getElementById('inter-skip').style.pointerEvents = 'none';
+
+  skipTimer = setInterval(() => {
+    count--;
+    document.getElementById('skip-count').textContent = count;
+    if (count <= 0) {
+      clearInterval(skipTimer);
+      document.getElementById('inter-skip').style.pointerEvents = 'auto';
+      document.getElementById('inter-skip').innerHTML = 'Skip ad ✕';
+    }
+  }, 1000);
+}
+
+function closeInterstitial() {
+  clearInterval(skipTimer);
+  document.getElementById('interstitial').classList.remove('show');
+}
+
+document.getElementById('next-btn').onclick = nextQuestion;
+document.getElementById('inter-skip').onclick = closeInterstitial;
+document.getElementById('inter-cta-btn').onclick = closeInterstitial;
+
+// Category pills
+document.querySelectorAll('.cat-pill').forEach(pill => {
+  pill.onclick = () => {
+    document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
+    pill.classList.add('active');
+  };
+});
+
+// Clock
+function updateClock() {
+  const now = new Date();
+  const h = now.getHours().toString().padStart(2,'0');
+  const m = now.getMinutes().toString().padStart(2,'0');
+  document.getElementById('clock').textContent = `${h}:${m}`;
+}
+updateClock();
+setInterval(updateClock, 30000);
+
+// Init
+loadQuestion();
+</script>
+</body>
+</html>
